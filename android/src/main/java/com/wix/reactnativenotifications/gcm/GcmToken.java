@@ -17,9 +17,13 @@ import static com.wix.reactnativenotifications.Defs.GCM_SENDER_ID_ATTR_NAME;
 import static com.wix.reactnativenotifications.Defs.LOGTAG;
 import static com.wix.reactnativenotifications.Defs.TOKEN_RECEIVED_EVENT_NAME;
 
+import com.wix.reactnativenotifications.core.AppLifecycleFacade;
+import com.wix.reactnativenotifications.core.AppLifecycleFacadeHolder;
+
 public class GcmToken implements IGcmToken {
 
     final protected Context mAppContext;
+    final protected AppLifecycleFacade mAppLifecycleFacade = AppLifecycleFacadeHolder.get();
 
     protected static String sToken;
 
@@ -121,12 +125,21 @@ public class GcmToken implements IGcmToken {
     }
 
     protected void sendTokenToJS() {
-        final ReactInstanceManager instanceManager = ((ReactApplication) mAppContext).getReactNativeHost().getReactInstanceManager();
-        final ReactContext reactContext = instanceManager.getCurrentReactContext();
+        final ReactContext reactContext = mAppLifecycleFacade.getRunningReactContext();
 
         // Note: Cannot assume react-context exists cause this is an async dispatched service.
         if (reactContext != null && reactContext.hasActiveCatalystInstance()) {
             reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(TOKEN_RECEIVED_EVENT_NAME, sToken);
         }
     }
+
+    // protected void sendTokenToJS() {
+    //     final ReactInstanceManager instanceManager = ((ReactApplication) mAppContext).getReactNativeHost().getReactInstanceManager();
+    //     final ReactContext reactContext = instanceManager.getCurrentReactContext();
+
+    //     // Note: Cannot assume react-context exists cause this is an async dispatched service.
+    //     if (reactContext != null && reactContext.hasActiveCatalystInstance()) {
+    //         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(TOKEN_RECEIVED_EVENT_NAME, sToken);
+    //     }
+    // }
 }
